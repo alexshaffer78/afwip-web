@@ -1,0 +1,14 @@
+# Node / build
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Generated at build time from python/afwip (prebuild step)
+public/afwip.zip
+
+# Python caches
+**/__pycache__/
+*.pyc
+
+# OS
+.DS_Store

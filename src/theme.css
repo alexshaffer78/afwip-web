@@ -1,0 +1,567 @@
+/* AFWIP theme — dark ops-room look, classroom-legible. */
+
+:root {
+  --bg: #0d1117;
+  --bg-panel: #161b26;
+  --bg-panel-2: #1c2333;
+  --border: #2a3348;
+  --text: #dce3f0;
+  --text-dim: #8b96ad;
+  --us: #4cc3ff;
+  --us-dim: #1c4a63;
+  --prc: #ff5f56;
+  --prc-dim: #5e2320;
+  --gold: #ffd166;
+  --green: #4ade80;
+  --ocean: #0f2036;
+  --ocean-2: #12283f;
+  --base-us: #12324a;
+  --base-prc: #47201e;
+  --standoff: #131a28;
+  --font-mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  --font-ui: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; margin: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 14px;
+}
+
+button {
+  font-family: var(--font-ui);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 6px 12px;
+  transition: border-color 120ms, background 120ms, transform 60ms;
+}
+button:hover:not(:disabled) { border-color: var(--gold); background: #232c42; }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { opacity: 0.45; cursor: default; }
+
+select, input {
+  background: var(--bg-panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+/* -- app layout ---------------------------------------------------------- */
+
+.app { display: flex; flex-direction: column; height: 100%; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+.topbar h1 {
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  margin: 0;
+  color: var(--gold);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.topbar .spacer { flex: 1; }
+
+.main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 10px;
+  padding: 10px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.left-col { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.panel {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.panel h2 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* -- status strip ---------------------------------------------------------- */
+
+.status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+}
+.status-strip .k { color: var(--text-dim); margin-right: 5px; }
+.side-us { color: var(--us); font-weight: 600; }
+.side-prc { color: var(--prc); font-weight: 600; }
+
+/* -- board ------------------------------------------------------------------- */
+
+.board-panel { padding: 6px; background: #dfe3e0; border-color: #b9c0ba; }
+.board-wrap {
+  position: relative;
+  border: 4px solid transparent;
+  border-radius: 12px;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+/* Turn indicator: frame the board in the active side's color. */
+.board-wrap.turn-us {
+  border-color: var(--us);
+  box-shadow: 0 0 0 1px var(--us), 0 0 18px -2px var(--us);
+}
+.board-wrap.turn-prc {
+  border-color: var(--prc);
+  box-shadow: 0 0 0 1px var(--prc), 0 0 18px -2px var(--prc);
+}
+.board-svg { width: 100%; height: auto; display: block; }
+
+/* real scanned token face shown on hover */
+.token-pop {
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  background: #fff;
+  border: 2px solid #20242e;
+  border-radius: 10px;
+  padding: 5px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  width: 220px;
+}
+.token-pop img { width: 100%; display: block; border-radius: 6px; }
+.token-pop .cap {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #20242e;
+  padding-top: 3px;
+}
+
+/* -- choices ------------------------------------------------------------------ */
+
+.prompt {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.prompt .who { font-size: 12px; margin-left: 8px; }
+
+.choice-group { margin-bottom: 10px; }
+.choice-group .cat {
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin: 4px 0;
+}
+.choice-list { display: flex; flex-direction: column; gap: 4px; }
+.choice-btn {
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  padding: 7px 10px;
+  width: 100%;
+}
+.choice-btn.cat-attack:hover { border-color: var(--prc); }
+.choice-btn.cat-move:hover { border-color: var(--us); }
+
+.choices-scroll { overflow-y: auto; min-height: 0; flex: 1; }
+
+/* -- log ------------------------------------------------------------------------ */
+
+/* The log is a bounded box at the bottom of the right column, so the action
+   menu (choice panel / roll prompt) always keeps priority and the log can never
+   balloon to cover it. */
+.log-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  height: 34%;
+  min-height: 130px;
+}
+.event-log {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.event-log .ev { color: var(--text-dim); }
+.event-log .ev.public-false { opacity: 0.6; font-style: italic; }
+.event-log .ev.t-decision { color: var(--text); }
+.event-log .ev.t-dice { color: #c084fc; }
+.event-log .ev.t-token_destroyed,
+.event-log .ev.t-squadron_destroyed { color: var(--prc); }
+.event-log .ev.t-vp_change { color: var(--gold); }
+.event-log .ev.t-cyber_change { color: var(--green); }
+
+/* -- dice faces -------------------------------------------------------------------- */
+
+.dice-faces {
+  display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  vertical-align: middle;
+}
+.roll { display: inline-flex; align-items: center; gap: 3px; }
+.die {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 4px;
+  border-radius: 5px; font-family: var(--font-mono); font-weight: 700;
+  font-size: 12px; line-height: 1;
+  color: #c084fc; border: 1px solid #c084fc66; background: #c084fc1a;
+}
+.die-used {           /* the die that counted (single, or the kept adv/dis die) */
+  color: var(--gold); border-color: var(--gold); background: #ffd1661f;
+  box-shadow: 0 0 5px #ffd16644;
+}
+.die-unused { opacity: 0.35; }   /* the discarded advantage/disadvantage die */
+.roll-mode {
+  font-family: var(--font-ui); font-size: 8.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim);
+  padding: 1px 3px; border: 1px solid var(--border); border-radius: 3px;
+}
+.roll-bonus { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+/* What a combat roll was for ("hit" / "damage" / "acquire"), before its dice. */
+.roll-role {
+  font-family: var(--font-ui); font-size: 8.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim);
+  margin-right: 3px;
+}
+
+/* Prominent "Last roll" panel (large faces). */
+.last-roll { flex: 0 0 auto; }
+.last-roll h2 { display: flex; align-items: baseline; gap: 6px; }
+.last-roll-item + .last-roll-item { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.last-roll-label { font-size: 12px; color: var(--text-dim); margin: 0 0 6px; }
+/* Label shown beside die faces for setup rolls (initiative / cyber / intel). */
+.dice-label { color: var(--text-dim); }
+.last-roll-step {
+  font-family: var(--font-mono); font-size: 11px; font-weight: 400; color: var(--text-dim);
+}
+.dice-lg { gap: 10px; }
+.dice-lg .die {
+  min-width: 34px; height: 34px; font-size: 18px; border-radius: 8px; padding: 0 6px;
+}
+.dice-lg .roll { gap: 5px; }
+.dice-lg .roll-mode { font-size: 10px; }
+.dice-lg .roll-bonus { font-size: 14px; }
+
+/* Human click-to-roll prompt. */
+.roll-prompt { flex: 0 0 auto; }
+.copy-ai {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.copy-ai-btn {
+  font-weight: 600; color: var(--gold);
+  background: #ffd1661a; border: 1px solid var(--gold); border-radius: 8px;
+  padding: 7px 14px; white-space: nowrap;
+}
+.copy-ai-btn:hover:not(:disabled) { background: #ffd16633; border-color: var(--gold); }
+.copy-ai-hint { font-size: 11px; color: var(--text-dim); }
+
+.roll-btn {
+  font-family: var(--font-ui); font-size: 18px; font-weight: 700;
+  color: var(--gold); background: #ffd1661a; border: 1px solid var(--gold);
+  border-radius: 10px; padding: 12px 28px; cursor: pointer;
+  transition: background 0.15s, transform 0.08s;
+}
+.roll-btn:hover:not(:disabled) { background: #ffd16633; }
+.roll-btn:active:not(:disabled) { transform: translateY(1px); }
+.roll-btn:disabled { opacity: 0.5; cursor: default; }
+.roll-stage { padding: 6px 0; }
+.roll-stage.rolling .die { animation: die-shake 0.14s infinite; }
+@keyframes die-shake {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50%      { transform: translateY(-3px) rotate(5deg); }
+}
+.roll-hint { font-family: var(--font-ui); font-size: 12px; color: var(--text-dim); margin: 8px 0 0; }
+
+/* -- card art ---------------------------------------------------------------------- */
+
+.card-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+.card-cell { display: flex; flex-direction: column; gap: 3px; width: 64px; }
+.card-cell.destroyed .card-thumb { filter: grayscale(1) brightness(0.55); }
+.card-thumb {
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: none;
+  width: 64px;
+  line-height: 0;
+}
+.card-thumb:hover { border-color: var(--gold); }
+.card-thumb img { width: 100%; display: block; }
+
+/* Spent (played) enablers: a dimmed row under the hand, still hoverable. */
+.spent-block { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 6px; }
+.spent-label {
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-dim); margin-bottom: 4px;
+}
+.card-cell.spent { width: 48px; }
+.card-cell.spent .card-thumb { width: 48px; filter: grayscale(0.7) brightness(0.7); }
+.card-cell.spent .card-thumb:hover { filter: none; border-color: var(--gold); }
+.card-back-thumb svg { width: 100%; display: block; }
+.cell-badges { display: flex; flex-wrap: wrap; gap: 2px; }
+.badge.bad { color: #ffb4ae; border-color: var(--prc); }
+.badge.good { color: var(--green); border-color: var(--green); }
+
+.card-modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  max-width: min(92vw, 460px);
+}
+.card-modal img { width: 100%; border-radius: 8px; display: block; }
+.card-modal .cap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  font-weight: 600;
+}
+
+/* Floats beside the choice panel so appearing/disappearing never reflows
+   the buttons under the cursor (which caused a hover flicker loop). */
+.choice-card-preview {
+  position: fixed;
+  top: 64px;
+  right: 384px;
+  width: 250px;
+  z-index: 15;
+  pointer-events: none;
+  background: #fff;
+  border: 2px solid #20242e;
+  border-radius: 10px;
+  padding: 5px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}
+.choice-card-preview img {
+  width: 100%;
+  display: block;
+  border-radius: 6px;
+}
+
+/* -- score piles (shot-down trophies) ---------------------------------------------- */
+
+.trophy-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+  min-height: 24px;
+}
+.trophy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  width: 40px;
+}
+.trophy svg { width: 40px; height: 40px; display: block; }
+.trophy .vp {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--gold);
+}
+.trophy.squadron { width: 44px; }
+.mini-card { position: relative; width: 44px; line-height: 0; }
+.mini-card img {
+  width: 100%;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  filter: grayscale(0.7) brightness(0.75);
+}
+.mini-card .x-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* -- side panels ------------------------------------------------------------------ */
+
+.panels-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.roster { font-family: var(--font-mono); font-size: 12px; }
+.roster .row { display: flex; gap: 8px; padding: 2px 0; }
+.roster .st-destroyed { color: var(--prc); text-decoration: line-through; }
+.roster .st-active { color: var(--green); }
+.roster .st-ready { color: var(--text-dim); }
+.roster .st-out { color: var(--text-dim); opacity: 0.6; }
+.badge {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 10.5px;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+/* -- overlays ------------------------------------------------------------------------- */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 14, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+.overlay .card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 32px 44px;
+  text-align: center;
+  max-width: 520px;
+}
+.overlay h2 { font-size: 20px; margin: 0 0 10px; }
+.overlay p { color: var(--text-dim); }
+.overlay button.primary {
+  margin-top: 14px;
+  font-size: 15px;
+  padding: 10px 26px;
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* -- menu ---------------------------------------------------------------------------- */
+
+.menu {
+  max-width: 620px;
+  margin: 48px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.menu h1 {
+  text-align: center;
+  color: var(--gold);
+  letter-spacing: 0.18em;
+  font-size: 22px;
+  text-transform: uppercase;
+}
+.menu .subtitle { text-align: center; color: var(--text-dim); margin-top: -12px; }
+.mode-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.mode-card {
+  padding: 18px 14px;
+  border-radius: 12px;
+  text-align: center;
+  border-width: 2px;
+}
+.mode-card.selected { border-color: var(--gold); background: #202a44; }
+.mode-card .title { font-weight: 700; margin-bottom: 6px; }
+.mode-card .desc { font-size: 12px; color: var(--text-dim); }
+.menu .opts {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.menu .opts label { color: var(--text-dim); font-size: 13px; }
+.menu button.start {
+  align-self: center;
+  font-size: 16px;
+  padding: 12px 42px;
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.menu button.tourney {
+  align-self: center;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  font-size: 17px; font-weight: 700;
+  padding: 13px 36px;
+  border-width: 2px; border-color: var(--gold); color: var(--gold);
+  background: #ffd1660f;
+}
+.menu button.tourney:hover:not(:disabled) { background: #ffd16622; }
+.menu .tourney-sub {
+  font-size: 11px; font-weight: 400; color: var(--text-dim); letter-spacing: 0.02em;
+}
+.menu .or-divider {
+  text-align: center; color: var(--text-dim); font-size: 11px;
+  text-transform: uppercase; letter-spacing: 0.12em; margin: -6px 0;
+}
+
+/* -- tournament clock -------------------------------------------------------- */
+.timer-panel { text-align: center; }
+.timer-row {
+  display: flex; align-items: baseline; justify-content: space-between; padding: 1px 4px;
+}
+.timer-label {
+  font-family: var(--font-ui); font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim);
+}
+.timer-clock {
+  font-family: var(--font-mono); font-size: 26px; font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.timer-row.warn .timer-clock { color: var(--gold); }
+.timer-row.over .timer-clock { color: var(--prc); }
+.timer-paused { font-size: 11px; font-weight: 400; color: var(--text-dim); }
+.error-banner {
+  background: #472326;
+  border: 1px solid var(--prc);
+  color: #ffb4ae;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+/* -- score report ------------------------------------------------------------------------ */
+
+.score-report { font-family: var(--font-mono); font-size: 12px; }
+.score-report .side-block { margin-bottom: 8px; }
+.score-report .line { color: var(--text-dim); padding-left: 12px; }
+
+/* --- In-browser engine boot screen (Pyodide first-load) --- */
+.boot-screen {
+  max-width: 460px;
+  margin: 12vh auto 0;
+  text-align: center;
+  padding: 24px;
+}
+.boot-screen h1 { margin: 0 0 4px; letter-spacing: 0.16em; }
+.boot-screen .subtitle { opacity: 0.7; margin-bottom: 28px; }
+.boot-spinner {
+  width: 42px; height: 42px; margin: 8px auto 18px;
+  border: 4px solid rgba(127, 127, 127, 0.25);
+  border-top-color: var(--accent, #d9a441);
+  border-radius: 50%;
+  animation: boot-spin 0.9s linear infinite;
+}
+@keyframes boot-spin { to { transform: rotate(360deg); } }
+.boot-msg { font-weight: 600; margin-bottom: 10px; }
+.boot-note { font-size: 0.85em; opacity: 0.6; line-height: 1.4; }
