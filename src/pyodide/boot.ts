@@ -75,7 +75,6 @@ export interface BrowserApi {
   step: (id: string) => Promise<any>;
   reveal: (id: string, viewer?: string | null) => Promise<any>;
   handoff: (id: string) => Promise<any>;
-  saveTrajectory: (id: string) => Promise<any>;
   deleteGame: (id: string) => Promise<any>;
 }
 
@@ -123,7 +122,6 @@ export function bootEngine(onProgress: Progress = () => {}): Promise<BrowserApi>
       step: (id) => call("post_step", { id }),
       reveal: (id, viewer) => call("post_reveal", { id, viewer: viewer ?? null }),
       handoff: (id) => call("post_handoff", { id }),
-      saveTrajectory: (id) => call("save_trajectory", { id }),
       deleteGame: (id) => call("delete_game", { id }),
     };
   })();

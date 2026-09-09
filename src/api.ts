@@ -56,9 +56,6 @@ export const api = {
   reveal: (id: string, viewer?: string | null) =>
     wrap((e) => e.reveal(id, viewer) as Promise<GameView>),
   handoff: (id: string) => wrap((e) => e.handoff(id) as Promise<GameView>),
-  saveTrajectory: (id: string) =>
-    wrap((e) => e.saveTrajectory(id) as Promise<
-      { game_id: string; trajectory: unknown; decisions: number }>),
   deleteGame: (id: string) =>
     wrap((e) => e.deleteGame(id) as Promise<{ deleted: string }>),
 };

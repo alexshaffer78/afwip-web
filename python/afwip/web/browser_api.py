@@ -298,25 +298,9 @@ async def dispatch(method: str, payload_json: str) -> str:
         return json.dumps(await post_reveal(p["id"], p.get("viewer")))
     if method == "post_handoff":
         return json.dumps(post_handoff(p["id"]))
-    if method == "save_trajectory":
-        return json.dumps(save_trajectory(p["id"]))
     if method == "delete_game":
         return json.dumps(delete_game(p["id"]))
     return json.dumps(_err(404, f"unknown method '{method}'"))
-
-
-def save_trajectory(game_id: str) -> dict:
-    """No disk in the browser — return the recorded tape so the JS side can
-    offer it as a download. 404 if this game isn't recording."""
-    try:
-        s = _get(game_id)
-        traj = s.build_trajectory()
-        if traj is None:
-            return _err(404, f"game '{game_id}' is not recording a trajectory")
-        return _ok({"game_id": game_id, "trajectory": traj.to_dict(),
-                    "decisions": len(s.trajectory.tape)})
-    except _ApiError as e:
-        return _err(e.status, e.detail)
 
 
 # --------------------------------------------------------------------------- #

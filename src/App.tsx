@@ -8,7 +8,6 @@ import type { ConfigView, GameView, Highlight } from "./types";
 import Board from "./components/Board";
 import ChoicePanel from "./components/ChoicePanel";
 import CopyForAI from "./components/CopyForAI";
-import SaveTrajectory from "./components/SaveTrajectory";
 import AgentReasoning from "./components/AgentReasoning";
 import EventLog from "./components/EventLog";
 import LastRoll from "./components/LastRoll";
@@ -374,9 +373,6 @@ export default function App() {
               Final score — US {view.status.vp["US"]} · PRC {view.status.vp["PRC"]}
             </p>
             {view.score_report && <ScoreReport report={view.score_report} />}
-            {view.recording && (
-              <SaveTrajectory gameId={view.game_id} saved={view.trajectory_saved} />
-            )}
             <button className="primary" onClick={quit}>Back to menu</button>
           </div>
         </div>

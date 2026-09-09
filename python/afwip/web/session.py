@@ -34,9 +34,7 @@ from afwip.view.export import game_export
 from afwip.view.events import EventRecorder, score_report
 from afwip.view.models import GameView, ScoreReportView, AgentMoveView
 from afwip.web.agents import Agent, make_agent
-from afwip.rl.trajectory import (
-    TrajectoryRecorder, Trajectory, write_trajectory, DEFAULT_TRAJECTORY_DIR,
-)
+from afwip.rl.trajectory import TrajectoryRecorder
 from afwip.rl.state_text import llm_state_text
 
 # Hard ceiling on any automatic advancement loop. Full env games run a few
@@ -89,22 +87,13 @@ class GameSession:
         # engine's dice stream (mirrors the TUI's seed+1 convention).
         self.agent_rng = random.Random(self.seed + 1)
 
-        # Trajectory capture: record the decision tape for training data. By
-        # default it captures HOTSEAT games (hand-curated) and AGENT_V_AGENT
-        # games (e.g. watching GPT play in "Watch Agents"). The seed + tape
-        # replay deterministically, so only the tape is stored; saving to
-        # `trajectory_dir/{game_id}.jsonl` is on demand (the Save button).
-        self.record_trajectory = (
-            record if record is not None
-            else mode in (GameMode.HOTSEAT, GameMode.AGENT_V_AGENT))
-        self.trajectory_dir = (Path(trajectory_dir) if trajectory_dir is not None
-                               else DEFAULT_TRAJECTORY_DIR)
+        # Lightweight in-memory decision tape, kept ONLY to power the live
+        # agent-reasoning feed in Watch Agents (agent_v_agent). Saving/exporting
+        # trajectories has been removed — nothing is ever written to disk.
         self.trajectory: Optional[TrajectoryRecorder] = (
             TrajectoryRecorder(campaign, self.seed, self.env.max_turns,
                                source="human")
-            if self.record_trajectory else None)
-        # Where the tape was last written (None until the user chooses to save).
-        self.trajectory_saved_path: Optional[Path] = None
+            if mode == GameMode.AGENT_V_AGENT else None)
 
         self.agents: dict[Side, Agent] = {}
         if mode == GameMode.AGENT_V_AGENT:
@@ -193,31 +182,6 @@ class GameSession:
         self.decision_no += 1
         self.revision += 1
 
-    # -- trajectory capture ---------------------------------------------------
-
-    @property
-    def recording(self) -> bool:
-        """Whether this game is capturing a trajectory (tape kept in memory)."""
-        return self.trajectory is not None
-
-    def build_trajectory(self) -> Optional[Trajectory]:
-        """Finalize the recorded tape against the current engine state. Usable
-        mid-game (a snapshot: winner None, VP current) or at terminal."""
-        if self.trajectory is None:
-            return None
-        return self.trajectory.finalize(self.env.engine)
-
-    def save_trajectory(self) -> Optional[Path]:
-        """Write the recorded tape to `trajectory_dir/{game_id}.jsonl`. Explicit
-        (the user chooses to keep a game) — nothing is written automatically.
-        Re-saving overwrites the same file. Returns the path, or None if this
-        game is not recording."""
-        traj = self.build_trajectory()
-        if traj is None:
-            return None
-        path = write_trajectory(traj, self.trajectory_dir / f"{self.game_id}.jsonl")
-        self.trajectory_saved_path = path
-        return path
 
     # -- in-progress draft mirror (AI export) --------------------------------
 
@@ -431,8 +395,6 @@ class GameSession:
             winner=eng.state.winner.value if eng.state.winner else None,
             handoff_required=self.handoff_required,
             roll_pending=self.roll_pending,
-            recording=self.recording,
-            trajectory_saved=self.trajectory_saved_path is not None,
             agent_log=self._agent_log(),
             status=serializer.status_view(eng),
             board=serializer.board_view(eng, viewer, reveal),
